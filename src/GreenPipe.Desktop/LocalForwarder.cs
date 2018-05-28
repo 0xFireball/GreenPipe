@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -7,13 +8,32 @@ namespace GreenPipe.Desktop {
     public class LocalForwarder {
         private TcpListener _listener;
         public TcpClient serverConn;
+        private string _myServerId;
 
         public LocalForwarder(IPEndPoint endpoint) {
             _listener = new TcpListener(endpoint);
             serverConn = new TcpClient();
         }
 
+        public async Task connectToServer(IPEndPoint serverEp) {
+            serverConn.Connect(serverEp);
+            // receieve ID
+            using (var reader = new StreamReader(serverConn.GetStream())) {
+                _myServerId = reader.ReadLine();
+            }
+            Console.WriteLine($"connection established, id: {_myServerId}");
+        }
+
+        public async Task<bool> connectRemotePeer(string peerId) {
+            using (var writer = new StreamWriter(serverConn.GetStream())) {
+                writer.WriteLine(peerId);
+                writer.Flush();
+            }
+            return true;
+        }
+
         public async Task runListener() {
+            _listener.Start();
             while (true) {
                 var extClient = await _listener.AcceptTcpClientAsync();
 
