@@ -53,7 +53,7 @@ namespace GreenPipe.Server {
 
             // set up forwarding between peers
             client.conn.Client.BeginReceive(client.buffer, 0, client.buffer.Length, SocketFlags.None,
-                onClientReceieveAsync, null);
+                onClientReceieveAsync, client);
 
             return Task.FromResult(true);
         }
